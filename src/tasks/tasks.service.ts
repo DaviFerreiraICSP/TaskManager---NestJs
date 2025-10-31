@@ -1,5 +1,4 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common'; // Import Injectable decorator from NestJS
-import { Task } from './entities/task.entity';
 import { CreateTaskDto } from './dto/create_task.dto';
 import { UpdateTaskDto } from './dto/update_task.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -7,11 +6,11 @@ import { PaginationDto } from 'src/common/dto/pagination.dto';
 
 @Injectable()
 export class TasksService {
-    constructor(private prisma: PrismaService) {}
+    constructor(private prisma: PrismaService,) {}
     
     async findAll(paginationDto?: PaginationDto) {
         const { limit = 10, offset = 0} = paginationDto || {};
-
+    
         return await this.prisma.task.findMany({
             take: limit,
             skip: offset,

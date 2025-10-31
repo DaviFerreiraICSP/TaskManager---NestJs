@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Post, Query, Body, Patch, Delete, ParseIntPipe, UseInterceptors } from '@nestjs/common'; 
+import { Controller, Get, Param, Post, Query, Body, Patch, Delete, ParseIntPipe, UseInterceptors, UseGuards, Inject } from '@nestjs/common'; 
 import { TasksService } from './tasks.service'; 
 import { CreateTaskDto } from './dto/create_task.dto';
 import { UpdateTaskDto } from './dto/update_task.dto';
@@ -6,16 +6,20 @@ import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { LoggerInterceptor } from 'src/common/interceptors/logger.interceptor';
 import { BodyCreateTaskInterceptor } from 'src/common/interceptors/body-create-task.intercepter';
 import { AddHeaderInterceptor } from 'src/common/interceptors/add-header.interceptor';
+import { AuthAdminGuard } from 'src/common/guards/admin.guards';
 
 @Controller('tasks')
+@UseGuards(AuthAdminGuard)
 @UseInterceptors(LoggerInterceptor)
 export class TasksController {
-    constructor(private readonly taskService: TasksService) {}
+    constructor(private readonly taskService: TasksService,
+    ) {}
 
     @Get() // Get all tasks | Get means to retrieve data from the server
     @UseInterceptors(LoggerInterceptor)
     @UseInterceptors(AddHeaderInterceptor)
     FindAll(@Query() paginationDto: PaginationDto) { // Optional limit query parameter
+
         return this.taskService.findAll(paginationDto); // Call service to get all tasks
     }
 

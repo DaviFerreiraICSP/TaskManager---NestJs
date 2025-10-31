@@ -15,6 +15,7 @@ async function bootstrap() {
     whitelist: true, // Strip properties that do not have any decorators
     transform: false, // Automatically transform payloads to be objects typed according to their DTO classes
   })); // Enable global pipes for validation and transformation
+  
   await app.listen(process.env.PORT ?? 3000);
 }
 bootstrap();
