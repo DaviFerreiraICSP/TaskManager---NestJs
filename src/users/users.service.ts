@@ -2,10 +2,12 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateUserDto } from './dto/create_user.dto';
 import { UpdateUserDto } from './dto/upddate_user.dto';
+import { HashingServiceProtocol } from 'src/auth/hash/hashing.service';
+import { UpdateTaskDto } from 'src/tasks/dto/update_task.dto';
 
 @Injectable()
 export class UsersService {
-    constructor(private prisma: PrismaService) {}
+    constructor(private prisma: PrismaService, private readonly hashingService: HashingServiceProtocol,) {}
     
     async findOneUser(id: number) {
         const user = await this.prisma.user.findFirst({
@@ -27,12 +29,19 @@ export class UsersService {
 
     async createUser(createUserDto: CreateUserDto) { 
         try{
+            
+            const passwordHash = await this.hashingService.hash(createUserDto.password)
 
             const user = await this.prisma.user.create({
                 data:{
                     user: createUserDto.user,
                     email: createUserDto.email,
-                    passwordHash: createUserDto.password,
+                    passwordHash: passwordHash,
+                },
+                select: {
+                    id: true,
+                    user: true,
+                    email: true,
                 }
             })
 
@@ -83,14 +92,21 @@ export class UsersService {
              throw new HttpException('User not found', HttpStatus.BAD_REQUEST)
             }
 
+            const dataUser: { user?: string, passwordHash?: string} = {user: updateUserDto.user,}
+            
+            if(updateUserDto?.password){
+                const passwordHash = await this.hashingService.hash(updateUserDto?.password)
+                dataUser['passwordHash'] = passwordHash
+            }
+
             const updateUser = await this.prisma.user.update({
                 where:{
                     id: user.id,
                 },
                 data:{
-                    user: updateUserDto.user ? updateUserDto.user : user.user,
-                    passwordHash: updateUserDto.password ? updateUserDto.password : user.passwordHash,
-                    email: user.email
+                    user: dataUser?.user,
+                    passwordHash: dataUser?.passwordHash ? dataUser?.passwordHash : user.passwordHash,
+                    email: updateUserDto?.email ? updateUserDto.email : user.email
                 },
                 select:{
                     id: true,

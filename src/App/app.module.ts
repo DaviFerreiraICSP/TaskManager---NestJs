@@ -5,9 +5,10 @@ import { TasksModule } from '../tasks/tasks.module';
 import { UsersModule } from 'src/users/users.module';
 import { AuthModule } from 'src/auth/auth.module';
 import { LoggerMiddleware } from 'src/common/middlewares/logger.middleware';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
-  imports: [TasksModule, UsersModule, AuthModule], // Importing TasksModule to manage task-related functionalities
+  imports: [TasksModule, UsersModule, ConfigModule.forRoot(), AuthModule], // Importing TasksModule to manage task-related functionalities
   controllers: [AppController], // Registering AppController to handle incoming requests
   providers: [AppService], 
 })

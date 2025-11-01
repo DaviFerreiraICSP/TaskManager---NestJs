@@ -1,47 +1,40 @@
-import { Injectable } from '@nestjs/common';
-import { authenticator } from 'otplib';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { SignInDto } from './dto/signin.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
-import * as qrcode from 'qrcode';
+import { HashingServiceProtocol } from './hash/hashing.service';
 
 @Injectable()
 export class AuthService {
-    constructor(private readonly prisma: PrismaService) {}
+    constructor(private prisma: PrismaService,
+        private readonly hashingService: HashingServiceProtocol
+    ){}
 
-    async generate2FASecret(email: string) {
-        const secret = authenticator.generateSecret();
 
-        const otpauthUrl = authenticator.keyuri(email, 'MyNestApp', secret);
-
-        const qrCode = await qrcode.toDataURL(otpauthUrl);
-
-        await this.prisma.user.update({
-        where: { email },
-        data:{ 
-             twoFactorSecret: secret 
-            },
-
-        });
-
-        return {
-            qrCode, // you can show this in frontend
-            secret, // optional (for testing)
-        };
-    }
-
-    async verify2FA(email: string, token: string) {
-        const user = await this.prisma.user.findUnique({
-            where: { email },
+    async authenticate(signIndto: SignInDto){
+        
+        const user = await this.prisma.user.findFirst({
+            where:{
+                email: signIndto.email
+            }
         })
-    
-        if (!user || !user.twoFactorSecret) {
-            return false;
+
+        if(!user){
+            throw new HttpException("User/Password is incorrect", HttpStatus.UNAUTHORIZED)
         }
 
-        return authenticator.verify({
-            token,
-            secret: user.twoFactorSecret,
-        });
-    }
+        const passwordIsValid = await this.hashingService.compare(signIndto.password, user.passwordHash)
+    
+        if(!passwordIsValid){
+            throw new HttpException("User/Password is incorrect", HttpStatus.UNAUTHORIZED)
+        }
+        
+        return{
+            id: user.id,
+            user: user.user,
+            email: user.email
+        }
+
+    }   
+
 
 }
-
