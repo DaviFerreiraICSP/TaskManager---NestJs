@@ -1,12 +1,18 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { SignInDto } from './dto/signin.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { HashingServiceProtocol } from './hash/hashing.service';
+import { JwtService } from '@nestjs/jwt';
+import type { ConfigType } from '@nestjs/config';
+import jwtConfig from './config/jwt.config';
 
 @Injectable()
 export class AuthService {
     constructor(private prisma: PrismaService,
-        private readonly hashingService: HashingServiceProtocol
+        private readonly hashingService: HashingServiceProtocol,
+
+        @Inject(jwtConfig.KEY)
+        private readonly jwtConfiguration: ConfigType<typeof jwtConfig>
     ){}
 
 
@@ -30,8 +36,8 @@ export class AuthService {
         
         return{
             id: user.id,
-            user: user.user,
-            email: user.email
+            email: user.email,
+            user: user.user
         }
 
     }   
