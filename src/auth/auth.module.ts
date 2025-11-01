@@ -1,12 +1,17 @@
-import { Module } from '@nestjs/common';
-import { PrismaModule } from 'src/prisma/prisma.module';
-import { AuthController } from './auth.controller';
-import { AuthService } from './auth.service';
+import { Global, Module } from '@nestjs/common';
+import { HashingServiceProtocol } from './hash/hashing.service';
+import { BcryptService } from './hash/bcrypt.service';
 
+//Turn into a global module. 
+@Global() 
 @Module({
-    imports: [PrismaModule],
-    controllers: [AuthController],
-    providers: [AuthService],
+    providers: [
+        {
+            provide: HashingServiceProtocol,
+            useClass: BcryptService
+        }
+    ]
+    ,
+    exports: [HashingServiceProtocol]
 })
-
-export class AuthModule {}
+export class AuthModule { }
