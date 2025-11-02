@@ -1,7 +1,8 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, UseGuards } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create_user.dto';
 import { UpdateUserDto } from './dto/upddate_user.dto';
+import { AuthTokenGuard } from 'src/auth/guard/auth-token-guards';
 
 
 @Controller('users')
@@ -21,6 +22,7 @@ export class UsersController {
         return this.usersService.createUser(createUserDto);
     }
 
+    @UseGuards(AuthTokenGuard)
     @Patch(':id')
     updateUser(@Param('id', ParseIntPipe) id: number, @Body() updateUserDto: UpdateUserDto) {
         return this.usersService.update(id, updateUserDto)

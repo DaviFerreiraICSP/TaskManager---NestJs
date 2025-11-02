@@ -12,7 +12,8 @@ export class AuthService {
         private readonly hashingService: HashingServiceProtocol,
 
         @Inject(jwtConfig.KEY)
-        private readonly jwtConfiguration: ConfigType<typeof jwtConfig>
+        private readonly jwtConfiguration: ConfigType<typeof jwtConfig>,
+        private readonly jwtService: JwtService
     ){}
 
 
@@ -33,11 +34,26 @@ export class AuthService {
         if(!passwordIsValid){
             throw new HttpException("User/Password is incorrect", HttpStatus.UNAUTHORIZED)
         }
-        
+
+        const token = await this.jwtService.signAsync(
+            {
+                sub: user.id,
+                email: user.email,
+            },
+            {
+                secret: this.jwtConfiguration.secret,
+                expiresIn: this.jwtConfiguration.jwtTtl,
+                audience: this.jwtConfiguration.audience,
+                issuer: this.jwtConfiguration.issuer,
+            }
+        )
+
         return{
             id: user.id,
             email: user.email,
-            user: user.user
+            user: user.user,
+            token: token,
+
         }
 
     }   
