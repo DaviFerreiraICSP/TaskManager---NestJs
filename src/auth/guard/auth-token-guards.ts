@@ -1,15 +1,16 @@
-import { CanActivate, ExecutionContext, HttpException, Inject, Injectable, UnauthorizedException } from "@nestjs/common";
+import { CanActivate, ExecutionContext, Inject, Injectable, UnauthorizedException } from "@nestjs/common";
 import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
+import type { ConfigType } from "@nestjs/config";
 import jwtConfig from "../config/jwt.config";
-import { ConfigType } from "@nestjs/config";
+import { REQUEST_TOKEN_PAYLOAD_NAME } from "../common/constants";
 
 
 @Injectable()
 export class AuthTokenGuard implements CanActivate{
 
     constructor(
-        private readonly jwtService: JwtService
+        private readonly jwtService: JwtService,
 
         @Inject(jwtConfig.KEY)
         private readonly jwtConfiguration: ConfigType<typeof jwtConfig>,
@@ -25,19 +26,20 @@ export class AuthTokenGuard implements CanActivate{
         }
 
         try{
+            const payload = await this.jwtService.verifyAsync(token, this.jwtConfiguration)
 
-
+            request[REQUEST_TOKEN_PAYLOAD_NAME] = payload
 
         }catch(err){
             console.log(err);
-            throw new UnauthorizedException("Authorization not Found")
+            throw new UnauthorizedException("Access denied")
         }
 
         return true;
     }
 
     extractTokenHeader(request: Request) {
-        const authorization = request.headers?.authorization
+        const authorization = request.headers?.authorization 
 
         if(!authorization || typeof authorization !== "string"){
             return

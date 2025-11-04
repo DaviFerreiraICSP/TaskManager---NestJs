@@ -53,7 +53,6 @@ export class AuthService {
             email: user.email,
             user: user.user,
             token: token,
-
         }
 
     }   
